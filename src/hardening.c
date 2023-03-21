@@ -112,9 +112,37 @@ void harden_sshd() {
     fprintf(file, "Ciphers aes128-ctr,aes192-ctr,aes256-ctr\n");
     fprintf(file, "# Set the allowed key exchange algorithms to the following\n");
     fprintf(file, "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256\n");
+    fprintf(file, "ClientAliveInterval 300");
+    fprintf(file, "LogLevel INFO"); 
+    fprintf(file, "IgnoreRhosts yes"); 
+    fprintf(file, "HostbasedAuthentication no");
+    fprintf(file, "PermitEmptyPasswords no");
+    fprintf(file, "PermitUserEnvironment no");
 
     // Close the sshd_config file
     fclose(file);
+
+    // Set the owner and group of /etc/ssh/sshd_config to root
+    chown("/etc/ssh/sshd_config", 0, 0);
+
+    // Set the file permissions of /etc/ssh/sshd_config to 600 (rw-------)
+    chmod("/etc/ssh/sshd_config", S_IRUSR | S_IWUSR);
+    
+    char *find_args1[] = { "find", "/etc/ssh", "-xdev", "-type", "f", "-name", "ssh_host_*_key.pub", "-exec", "chmod", "u-x,gowx", "{}", ";", NULL };
+    char *find_args2[] = { "find", "/etc/ssh", "-xdev", "-type", "f", "-name", "ssh_host_*_key.pub", "-exec", "chown", "root:root", "{}", ";", NULL };
+    char *find_args3[] = { "find", "/etc/ssh", "-xdev", "-type", "f", "-name", "ssh_host_*_key", "-exec", "chown", "root:root", "{}", ";", "find", "/etc/ssh", "-xdev", "-type", "f", "-name", "ssh_host_*_key", "-exec", "chmod", "u-x,go-rwx", "{}", ";", NULL };
+
+    printf("Running command: %s %s %s %s %s %s %s %s %s %s %s %s %s\n", find_args1[0], find_args1[1], find_args1[2], find_args1[3], find_args1[4], find_args1[5], find_args1[6], find_args1[7], find_args1[8], find_args1[9], find_args1[10], find_args1[11], find_args1[12]);
+    execvp(find_args1[0], find_args1);
+
+    printf("Running command: %s %s %s %s %s %s %s %s %s %s %s %s %s\n", find_args2[0], find_args2[1], find_args2[2], find_args2[3], find_args2[4], find_args2[5], find_args2[6], find_args2[7], find_args2[8], find_args2[9], find_args2[10], find_args2[11], find_args2[12]);
+    execvp(find_args2[0], find_args2);
+
+    printf("Running command: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n", find_args3[0], find_args3[1], find_args3[2], find_args3[3], find_args3[4], find_args3[5], find_args3[6], find_args3[7], find_args3[8], find_args3[9], find_args3[10], find_args3[11], find_args3[12], find_args3[13], find_args3[14], find_args3[15], find_args3[16], find_args3[17], find_args3[18], find_args3[19], find_args3[20], find_args3[21]);
+    execvp(find_args3[0], find_args3);
+
+    restart_service("sshd");
+
 }
 
 // void secure_grub() {
