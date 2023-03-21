@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I./include -lcrypt
+CFLAGS=-I./include
 OBJ=main.o src/audit.o src/discovery.o src/hardening.o src/network.o src/system.o
 
 all: main

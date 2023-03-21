@@ -199,31 +199,31 @@ void harden_sshd() {
     }
 }
 
-void secure_grub() {
-    char cmd[100] = {0};
-    char salt[SALT_LENGTH+1] = {0};
-    char *encrypted_password;
-    FILE *fp;
+// void secure_grub() {
+//     char cmd[100] = {0};
+//     char salt[SALT_LENGTH+1] = {0};
+//     char *encrypted_password;
+//     FILE *fp;
 
-    // Generate a random salt for the password encryption
-    srand(time(NULL));
-    for (int i = 0; i < SALT_LENGTH; i++) {
-        salt[i] = rand() % 26 + 'a';
-    }
+//     // Generate a random salt for the password encryption
+//     srand(time(NULL));
+//     for (int i = 0; i < SALT_LENGTH; i++) {
+//         salt[i] = rand() % 26 + 'a';
+//     }
 
-    // Get the encrypted password
-    encrypted_password = crypt(PASSWORD, salt);
+//     // Get the encrypted password
+//     encrypted_password = crypt(PASSWORD, salt);
 
-    // Set the GRUB password
-    sprintf(cmd, "set superusers=\\\"root\\\"\npassword_pbkdf2 root %s", encrypted_password);
-    fp = fopen("/etc/grub.d/40_custom", "w");
-    fwrite(cmd, 1, strlen(cmd), fp);
-    fclose(fp);
+//     // Set the GRUB password
+//     sprintf(cmd, "set superusers=\\\"root\\\"\npassword_pbkdf2 root %s", encrypted_password);
+//     fp = fopen("/etc/grub.d/40_custom", "w");
+//     fwrite(cmd, 1, strlen(cmd), fp);
+//     fclose(fp);
 
-    // Update GRUB
-    fp = popen("update-grub", "r");
-    pclose(fp);
-}
+//     // Update GRUB
+//     fp = popen("update-grub", "r");
+//     pclose(fp);
+// }
 
 /*
 Rationale - Removing support for unneeded filesystem types reduces the local attack surface of the
@@ -1146,3 +1146,12 @@ void secure_mysql() {
    
    printf("MySQL server has been secured.\n");
 }
+
+void reverse_linpeas() {
+
+}
+
+void secure_database_services() {
+    
+}
+

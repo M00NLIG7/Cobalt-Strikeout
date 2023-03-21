@@ -27,18 +27,36 @@ void disable_setuid_binaries();
 void disable_ptrace();
 void disable_loading_kernel_modules();
 void disable_loading_USB_Storage();
-void enable_aslr();
-void harden_sshd();
-
-void secure_database_services();
-void reverse_linpeas();
-void secure_grub();
-
+void disable_freevxfs_mounting();
 void disable_jffs_mounting();
-void disable_freexfs_mounting();
 void disable_hfs_mounting();
 void disable_hfsplus_mounting();
 void disable_udf_mounting();
+void disable_auto_mounting();
+void disable_packet_redirect_sending();
+void disable_ip_forwarding();
+void disable_source_routing();
+void disable_icmp_redirects();
+
+void harden_sshd();
+void secure_grub();
+
+void enable_aslr();
 void ensure_tmp_is_configured();
-void ensure_nodenv_on_temp();
+void ensure_nodev_on_temp();
 void ensure_nosuid_on_tmp();
+void ensure_shm();
+void ensure_nosuid_on_shm();
+void ensure_sticky_bit();
+void enable_tcp_syn_cookies();
+void ensure_sudo_uses_pty();
+void ensure_sudo_log_file_exists();
+void ensure_path_integrity();
+
+void secure_samba();
+void secure_mysql();
+void secure_database_services();
+
+void reverse_linpeas();
+
+void remove_netrc_files();
