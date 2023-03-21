@@ -112,12 +112,12 @@ void harden_sshd() {
     fprintf(file, "Ciphers aes128-ctr,aes192-ctr,aes256-ctr\n");
     fprintf(file, "# Set the allowed key exchange algorithms to the following\n");
     fprintf(file, "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256\n");
-    fprintf(file, "ClientAliveInterval 300");
-    fprintf(file, "LogLevel INFO"); 
-    fprintf(file, "IgnoreRhosts yes"); 
-    fprintf(file, "HostbasedAuthentication no");
-    fprintf(file, "PermitEmptyPasswords no");
-    fprintf(file, "PermitUserEnvironment no");
+    fprintf(file, "ClientAliveInterval 300\n");
+    fprintf(file, "LogLevel INFO\n"); 
+    fprintf(file, "IgnoreRhosts yes\n"); 
+    fprintf(file, "HostbasedAuthentication no\n");
+    fprintf(file, "PermitEmptyPasswords no\n");
+    fprintf(file, "PermitUserEnvironment no\n");
 
     // Close the sshd_config file
     fclose(file);
