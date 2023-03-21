@@ -86,121 +86,91 @@ void enable_aslr() {
 }
 
 void harden_sshd() {
-    const char *sshd_config = "/etc/ssh/sshd_config";
-    const char *log_level = "INFO";
-    const char *client_alive_interval = "ClientAliveInterval 300";
-    const char *client_alive_count_max = "ClientAliveCountMax 0";
-    const char *permit_root_login = "PermitRootLogin no";
-    const char *max_auth_tries = "MaxAuthTries 4";
-    const char *max_sessions = "MaxSessions 4";
-    const char *ignore_rhosts = "IgnoreRhosts yes";
-    const char *host_based_auth = "HostbasedAuthentication no";
-    const char *permit_empty_pass = "PermitEmptyPasswords no";
-    const char *challenge_response_auth = "ChallengeResponseAuthentication no";
-    const char *allow_agent_fwd = "AllowAgentForwarding no";
-    const char *allow_tcp_fwd = "AllowTcpForwarding no";
-    const char *print_last_log = "PrintLastLog yes";
-    const char *use_pam = "UsePAM yes";
-    const char *x11_forwarding = "X11Forwarding no";
-
-    // Set sshd_config file and key file permissions
-    if (chmod(sshd_config, S_IRUSR | S_IWUSR) != 0) {
-        fprintf(stderr, "Error setting permissions on %s\n", sshd_config);
-    }
-
-    DIR *dir = opendir("/etc/ssh");
-    if (!dir) {
-        fprintf(stderr, "Error opening directory /etc/ssh/\n");
-    }
-
-    struct dirent *entry;
-    while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_REG && strstr(entry->d_name, "ssh_host_") == entry->d_name) {
-            char key_path[1029];
-            snprintf(key_path, sizeof(key_path), "/etc/ssh/%s", entry->d_name);
-
-            struct stat key_stat;
-            if (stat(key_path, &key_stat) < 0) {
-                fprintf(stderr, "Error getting stat for %s\n", key_path);
-                continue;
-            }
-
-            if (key_stat.st_mode & (S_IRWXG | S_IRWXO)) {
-                if (chmod(key_path, S_IRUSR | S_IWUSR) != 0) {
-                    fprintf(stderr, "Error setting permissions on %s\n", key_path);
-                    continue;
-                }
-            }
-        }
-    }
-
-    closedir(dir);
-
-    // Update sshd_config file
-    FILE *fp = fopen(sshd_config, "r+");
-    if (!fp) {
-        fprintf(stderr, "Failed to open %s\n", sshd_config);
-    }
-
-    int changed = 0;
     char line[2048];
-    char *new_line;
+    FILE *sshd_config_file;
+    FILE *temp_file;
+    int line_num = 0;
+    int protocol_num = 0;
+    int permit_root_login_num = 0;
+    int password_authentication_num = 0;
+    int pubkey_authentication_num = 0;
 
-    while (fgets(line, sizeof(line), fp) != NULL) {
-        if (strncmp(line, "LogLevel ", 9) == 0) {
-            new_line = (char *)malloc(strlen(log_level) + 11);
-            sprintf(new_line, "LogLevel %s\n", log_level);
-            fputs(new_line, fp);
-            free(new_line);
-            changed = 1;
-        } else if (strncmp(line, "X11Forwarding", 13) == 0) {
-            fprintf(fp, "%s\n", x11_forwarding);
-            changed = 1;
-        } else if (strncmp(line, "ClientAliveInterval", 19) == 0) {
-            fprintf(fp, "ClientAliveInterval 300\n");
-            changed = 1;
-        } else if (strncmp(line, "ClientAliveCountMax", 19) == 0) {
-            fprintf(fp, "ClientAliveCountMax 0\n");
-            changed = 1;
-        } else if (strncmp(line, "PermitRootLogin", 15) == 0) {
-            fprintf(fp, "PermitRootLogin no\n");
-            changed = 1;
-        } else if (strncmp(line, "MaxAuthTries", 12) == 0) {
-            fprintf(fp, "MaxAuthTries 4\n");
-            changed = 1;
-        } else if (strncmp(line, "MaxSessions", 11) == 0) {
-            fprintf(fp, "MaxSessions 4\n");
-            changed = 1;
-        } else if (strncmp(line, "IgnoreRhosts", 12) == 0) {
-            fprintf(fp, "IgnoreRhosts yes\n");
-            changed = 1;
-        } else if (strncmp(line, "HostbasedAuthentication", 23) == 0) {
-            fprintf(fp, "HostbasedAuthentication no\n");
-            changed = 1;
-        } else if (strncmp(line, "PermitEmptyPasswords", 20) == 0) {
-            fprintf(fp, "PermitEmptyPasswords no\n");
-            changed = 1;
-        } else if (strncmp(line, "ChallengeResponseAuthentication", 31) == 0) {
-            fprintf(fp, "ChallengeResponseAuthentication no\n");
-            changed = 1;
-        } else if (strncmp(line, "AllowAgentForwarding", 20) == 0) {
-            fprintf(fp, "AllowAgentForwarding no\n");
-            changed = 1;
-        } else if (strncmp(line, "AllowTcpForwarding", 18) == 0) {
-            fprintf(fp, "AllowTcpForwarding no\n");
-            changed = 1;
-        } else if (strncmp(line, "PrintLastLog", 12) == 0) {
-            fprintf(fp, "PrintLastLog yes\n");
-            changed = 1;
-        } else if (strncmp(line, "UsePAM", 6) == 0) {
-            fprintf(fp, "UsePAM yes\n");
-            changed = 1;
-        } else {
-            fputs(line, fp);
+    // Open SSH configuration file
+    if ((sshd_config_file = fopen("/etc/ssh/sshd_config", "r")) == NULL) {
+        perror("Could not open sshd_config file");
+        exit(1);
+    }
+
+    // Create temporary file to store modified SSH configuration
+    if ((temp_file = tmpfile()) == NULL) {
+        perror("Could not create temporary file");
+        exit(1);
+    }
+
+    // Read each line of SSH configuration file
+    while (fgets(line, 2048, sshd_config_file) != NULL) {
+        line_num++;
+
+        // Disable SSHv1 protocol
+        if (strstr(line, "Protocol") != NULL) {
+            if (strstr(line, "1") != NULL) {
+                fprintf(temp_file, "Protocol 2\n");
+                protocol_num++;
+            } else {
+                fprintf(temp_file, "%s", line);
+            }
         }
+
+        // Disable root login
+        else if (strstr(line, "PermitRootLogin") != NULL) {
+            if (strstr(line, "yes") != NULL) {
+                fprintf(temp_file, "PermitRootLogin no\n");
+                permit_root_login_num++;
+            } else {
+                fprintf(temp_file, "%s", line);
+            }
+        }
+
+        // Disable password authentication
+        else if (strstr(line, "PasswordAuthentication") != NULL) {
+            if (strstr(line, "yes") != NULL) {
+                fprintf(temp_file, "PasswordAuthentication no\n");
+                password_authentication_num++;
+            } else {
+                fprintf(temp_file, "%s", line);
+            }
+        }
+
+        // Enable public key authentication
+        else if (strstr(line, "PubkeyAuthentication") != NULL) {
+            if (strstr(line, "no") != NULL) {
+                fprintf(temp_file, "PubkeyAuthentication yes\n");
+                pubkey_authentication_num++;
+            } else {
+                fprintf(temp_file, "%s", line);
+            }
+        }
+
+        // Copy all other lines as is
+        else {
+            fprintf(temp_file, "%s", line);
+        }
+    }
+
+    // Close SSH configuration and temporary files
+    fclose(sshd_config_file);
+    fclose(temp_file);
+
+    // Move temporary file to SSH configuration file
+    if (rename("/etc/ssh/sshd_config", "/etc/ssh/sshd_config.bak") != 0) {
+        perror("Could not create backup of sshd_config file");
+        exit(1);
+    }
+    if (rename("/tmp/temp_sshd_config", "/etc/ssh/sshd_config") != 0) {
+        perror("Could not write new sshd_config file");
+        exit(1);
     }
 }
-
 // void secure_grub() {
 //     char cmd[100] = {0};
 //     char salt[SALT_LENGTH+1] = {0};
