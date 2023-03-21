@@ -87,71 +87,36 @@ void enable_aslr() {
 
 
 void harden_sshd() {
-    char line[2048];
-    FILE *sshd_config_file;
-    int line_num = 0;
-    int protocol_num = 0;
-    int permit_root_login_num = 0;
-    int password_authentication_num = 0;
-    int pubkey_authentication_num = 0;
-
-    // Open SSH configuration file
-    if ((sshd_config_file = fopen("/etc/ssh/sshd_config", "r+")) == NULL) {
-        perror("Could not open sshd_config file");
-        exit(1);
+    // Open the sshd_config file for writing
+    FILE *file = fopen("/etc/ssh/sshd_config", "w");
+    if (file == NULL) {
+        perror("Error opening file");
+        return 1;
     }
 
-    // Read each line of SSH configuration file
-    while (fgets(line, 2048, sshd_config_file) != NULL) {
-        line_num++;
+    // Write the contents of the CIS Benchmark Compliant sshd_config file to sshd_config
+    fprintf(file, "# CIS Benchmark Compliant sshd_config\n");
+    fprintf(file, "# Set SSH Protocol Version 2\n");
+    fprintf(file, "Protocol 2\n");
+    fprintf(file, "# Disable X11 Forwarding\n");
+    fprintf(file, "X11Forwarding no\n");
+    fprintf(file, "# Set the maximum authentication retries to 3\n");
+    fprintf(file, "MaxAuthTries 3\n");
+    fprintf(file, "# Set the maximum sessions to 10\n");
+    fprintf(file, "MaxSessions 10\n");
+    fprintf(file, "# Disable GSSAPI authentication\n");
+    fprintf(file, "GSSAPIAuthentication no\n");
+    fprintf(file, "# Set the MAC algorithms to the following\n");
+    fprintf(file, "MACs hmac-sha2-256,hmac-sha2-512\n");
+    fprintf(file, "# Set the allowed ciphers to the following\n");
+    fprintf(file, "Ciphers aes128-ctr,aes192-ctr,aes256-ctr\n");
+    fprintf(file, "# Set the allowed key exchange algorithms to the following\n");
+    fprintf(file, "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256\n");
 
-        // Disable SSHv1 protocol
-        if (strstr(line, "Protocol") != NULL) {
-            if (strstr(line, "1") != NULL) {
-                fseek(sshd_config_file, -strlen(line), SEEK_CUR);
-                fprintf(sshd_config_file, "Protocol 2\n");
-                protocol_num++;
-            }
-        }
-
-        // Disable root login
-        else if (strstr(line, "PermitRootLogin") != NULL) {
-            if (strstr(line, "yes") != NULL) {
-                fseek(sshd_config_file, -strlen(line), SEEK_CUR);
-                fprintf(sshd_config_file, "PermitRootLogin no\n");
-                permit_root_login_num++;
-            }
-        }
-
-        // Disable password authentication
-        else if (strstr(line, "PasswordAuthentication") != NULL) {
-            if (strstr(line, "yes") != NULL) {
-                fseek(sshd_config_file, -strlen(line), SEEK_CUR);
-                fprintf(sshd_config_file, "PasswordAuthentication no\n");
-                password_authentication_num++;
-            }
-        }
-
-        // Enable public key authentication
-        else if (strstr(line, "PubkeyAuthentication") != NULL) {
-            if (strstr(line, "no") != NULL) {
-                fseek(sshd_config_file, -strlen(line), SEEK_CUR);
-                fprintf(sshd_config_file, "PubkeyAuthentication yes\n");
-                pubkey_authentication_num++;
-            }
-        }
-    }
-
-    // Close SSH configuration file
-    fclose(sshd_config_file);
-
-    // Print summary of changes made
-    printf("SSH configuration hardened:\n");
-    printf("  Protocol 1 disabled: %s\n", protocol_num ? "yes" : "no");
-    printf("  PermitRootLogin disabled: %s\n", permit_root_login_num ? "yes" : "no");
-    printf("  PasswordAuthentication disabled: %s\n", password_authentication_num ? "yes" : "no");
-    printf("  PubkeyAuthentication enabled: %s\n", pubkey_authentication_num ? "yes" : "no");
+    // Close the sshd_config file
+    fclose(file);
 }
+
 // void secure_grub() {
 //     char cmd[100] = {0};
 //     char salt[SALT_LENGTH+1] = {0};
