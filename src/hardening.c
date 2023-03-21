@@ -93,13 +93,11 @@ void harden_sshd() {
     // Set sshd_config file and key file permissions
     if (chmod(sshd_config, S_IRUSR | S_IWUSR) != 0) {
         fprintf(stderr, "Error setting permissions on %s\n", sshd_config);
-        exit(EXIT_FAILURE);
     }
 
     DIR *dir = opendir("/etc/ssh");
     if (!dir) {
         fprintf(stderr, "Error opening directory /etc/ssh/\n");
-        exit(EXIT_FAILURE);
     }
 
     struct dirent *entry;
@@ -126,77 +124,37 @@ void harden_sshd() {
     closedir(dir);
 
     // Update sshd_config file
-    FILE *fp_in = fopen(sshd_config, "r");
-    if (!fp_in) {
+    FILE *fp = fopen(sshd_config, "r+");
+    if (!fp) {
         fprintf(stderr, "Failed to open %s\n", sshd_config);
-        exit(EXIT_FAILURE);
-    }
-
-    char tmp_file[1028];
-    int fd = mkstemp(tmp_file);
-    if (fd == -1) {
-        fprintf(stderr, "Failed to create temporary file\n");
-        exit(EXIT_FAILURE);
-    }
-
-    FILE *fp_out = fdopen(fd, "w+");
-    if (!fp_out) {
-        fprintf(stderr, "Failed to open temporary file\n");
-        exit(EXIT_FAILURE);
     }
 
     int changed = 0;
     char line[1024];
+    char *new_line;
 
-    while (fgets(line, sizeof(line), fp_in) != NULL) {
+    while (fgets(line, sizeof(line), fp) != NULL) {
         if (strncmp(line, "LogLevel ", 9) == 0) {
-            fprintf(fp_out, "LogLevel %s\n", log_level);
+            new_line = (char *)malloc(strlen(log_level) + 11);
+            sprintf(new_line, "LogLevel %s\n", log_level);
+            fputs(new_line, fp);
+            free(new_line);
+            changed = 1;
+        } else if (strncmp(line, "X11Forwarding", 13) == 0) {
+            fprintf(fp, "%s\n", x11_forwarding);
             changed = 1;
         } else {
-            fputs(line, fp_out);
+            fputs(line, fp);
         }
     }
 
     if (!changed) {
-        fprintf(fp_out, "LogLevel %s\n", log_level);
+        fprintf(fp, "LogLevel %s\n", log_level);
+        fprintf(fp, "%s\n", x11_forwarding);
     }
 
-    fclose(fp_in);
-    fclose(fp_out);
+    fclose(fp);
 
-    if (rename(tmp_file, sshd_config) != 0) {
-        fprintf(stderr, "Failed to replace %s\n", sshd_config);
-        exit(EXIT_FAILURE);
-    }
-
-    printf("SSH LogLevel has been set to %s\n", log_level);
-
-    // Disable X11 forwarding
-    fp_in = fopen(sshd_config, "r");
-    if (!fp_in) {
-        fprintf(stderr, "Failed to open %s\n", sshd_config);
-        exit(EXIT_FAILURE);
-    }
-
-    changed = 0;
-
-    while (fgets(line, sizeof(line), fp_in) != NULL) {
-        if (strncmp(line, "X11Forwarding", 13) == 0) {
-            char *ptr = strchr(line, ' ');
-            if (ptr != NULL) {
-                int value = atoi(ptr);
-                if (value == 0) {
-                    fprintf(fp_out, "X11Forwarding yes\n");
-                } else {
-                    fprintf(fp_out, "%s", line);
-                }
-            } else {
-                fprintf(fp_out, "X11Forwarding yes\n");
-            }
-        } else {
-            fprintf(fp_out, "%s", line);
-        }
-    }
 }
 
 // void secure_grub() {
@@ -814,7 +772,6 @@ void disable_packet_redirect_sending() {
     fp = fopen("/etc/ssh/sshd_config", "r+");
     if (fp == NULL) {
         perror("Error opening sshd_config file");
-        exit(EXIT_FAILURE);
     }
 
     while ((read = getline(&line, &len, fp)) != -1) {
@@ -964,19 +921,16 @@ void enable_tcp_syn_cookies() {
     pid = fork();
     if (pid == -1) {
         fprintf(stderr, "Error forking child process\n");
-        exit(EXIT_FAILURE);
     } else if (pid == 0) {
         // This is the child process
         execl("/sbin/sysctl", "sysctl", "-w", "net.ipv4.tcp_syncookies=1", NULL);
         // execl only returns if an error occurs
         fprintf(stderr, "Error executing sysctl\n");
-        exit(EXIT_FAILURE);
     } else {
         // This is the parent process
         waitpid(pid, &status, 0);
         if (status != 0) {
             fprintf(stderr, "Error executing sysctl\n");
-            exit(EXIT_FAILURE);
         }
     }
 }
@@ -997,7 +951,6 @@ void ensure_sudo_uses_pty() {
     status = system(command);
     if (status != 0) {
         fprintf(stderr, "Error executing command\n");
-        exit(EXIT_FAILURE);
     }
 }
 
@@ -1014,27 +967,23 @@ void ensure_sudo_log_file_exists() {
     status = stat(sudo_log_file, &file_stat);
     if (status != 0) {
         fprintf(stderr, "Error getting file status\n");
-        exit(EXIT_FAILURE);
     }
 
     if (!S_ISREG(file_stat.st_mode)) {
         status = system("touch /var/log/sudo.log");
         if (status != 0) {
             fprintf(stderr, "Error creating sudo log file\n");
-            exit(EXIT_FAILURE);
         }
 
         status = system("chmod 640 /var/log/sudo.log");
         if (status != 0) {
             fprintf(stderr, "Error changing permissions on sudo log file\n");
-            exit(EXIT_FAILURE);
         }
     }
 
     status = system("grep -q '^Defaults\\s*logfile=\"/var/log/sudo.log\"' /etc/sudoers || echo 'Defaults logfile=\"/var/log/sudo.log\"' >> /etc/sudoers");
     if (status != 0) {
         fprintf(stderr, "Error adding Defaults logfile option to sudoers file\n");
-        exit(EXIT_FAILURE);
     }
 }
 
@@ -1081,19 +1030,16 @@ void ensure_path_integrity() {
 
     if (path_env_var == NULL) {
       printf("Error: PATH environment variable not set\n");
-      exit(EXIT_FAILURE);
     }
 
     size_t path_len = strlen(path_env_var);
     if (path_len > MAX_PATH_LEN) {
       printf("Error: PATH environment variable is too long\n");
-      exit(EXIT_FAILURE);
     }
 
     new_path_env_var = (char*)malloc(path_len + 1);
     if (new_path_env_var == NULL) {
       printf("Error: failed to allocate memory\n");
-      exit(EXIT_FAILURE);
     }
 
     char *p = strtok(path_env_var, ":");
@@ -1115,7 +1061,6 @@ void ensure_path_integrity() {
 
     if (setenv("PATH", new_path_env_var, 1) != 0) {
       printf("Error: failed to set PATH environment variable: %s\n", strerror(errno));
-      exit(EXIT_FAILURE);
     }
 
     printf("Successfully set PATH environment variable to: %s\n", new_path_env_var);
