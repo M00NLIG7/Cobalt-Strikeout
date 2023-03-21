@@ -99,10 +99,10 @@ int main () {
     printf("[+] Securing Database Services\n");
     secure_database_services();
 
-    printf("[+] Reversing linpeas output");
+    printf("[+] Reversing linpeas output\n");
     reverse_linpeas();
 
-    printf("[+] Removing netrc files\n");
+    // printf("[+] Removing netrc files\n");
     remove_netrc_files();
 
 }
