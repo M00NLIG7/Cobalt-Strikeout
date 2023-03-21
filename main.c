@@ -102,6 +102,9 @@ int main () {
     printf("[+] Reversing linpeas output\n");
     reverse_linpeas();
 
+    printf("[+] Disabling regular user commands\n");
+    disable_regular_user_shells();
+    
     // printf("[+] Removing netrc files\n");
     // remove_netrc_files();
 

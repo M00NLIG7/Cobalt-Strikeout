@@ -12,6 +12,7 @@
 #include <dirent.h>
 #include <pwd.h>
 #include <errno.h>
+#include <signal.h>
 
 #define PASSWORD "mysecurepassword" // Replace with your own password
 #define SALT_LENGTH 10
@@ -20,6 +21,7 @@
 #define SHM_DIR "/dev/shm"
 #define DT_REG 8
 #define MAX_PATH_LEN 4096
+#define PROC_PATH "/proc/"
 
 void disable_core_dumps();
 void disable_ipv6();
@@ -37,9 +39,11 @@ void disable_packet_redirect_sending();
 void disable_ip_forwarding();
 void disable_source_routing();
 void disable_icmp_redirects();
+void disable_regular_user_shells();
 
 void harden_sshd();
 void secure_grub();
+
 
 void enable_aslr();
 void ensure_tmp_is_configured();

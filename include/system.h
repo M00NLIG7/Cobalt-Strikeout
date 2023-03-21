@@ -15,6 +15,5 @@
 #define SLACK "/usr/sbin/slackpkg"
 #define PKG "/usr/bin/pkg"
 
-#define PROC_PATH "/proc/"
 
 void system_update();

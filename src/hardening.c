@@ -88,6 +88,19 @@ void enable_aslr() {
 void harden_sshd() {
     const char *sshd_config = "/etc/ssh/sshd_config";
     const char *log_level = "INFO";
+    const char *client_alive_interval = "ClientAliveInterval 300";
+    const char *client_alive_count_max = "ClientAliveCountMax 0";
+    const char *permit_root_login = "PermitRootLogin no";
+    const char *max_auth_tries = "MaxAuthTries 4";
+    const char *max_sessions = "MaxSessions 4";
+    const char *ignore_rhosts = "IgnoreRhosts yes";
+    const char *host_based_auth = "HostbasedAuthentication no";
+    const char *permit_empty_pass = "PermitEmptyPasswords no";
+    const char *challenge_response_auth = "ChallengeResponseAuthentication no";
+    const char *allow_agent_fwd = "AllowAgentForwarding no";
+    const char *allow_tcp_fwd = "AllowTcpForwarding no";
+    const char *print_last_log = "PrintLastLog yes";
+    const char *use_pam = "UsePAM yes";
     const char *x11_forwarding = "X11Forwarding no";
 
     // Set sshd_config file and key file permissions
@@ -130,7 +143,7 @@ void harden_sshd() {
     }
 
     int changed = 0;
-    char line[1024];
+    char line[2048];
     char *new_line;
 
     while (fgets(line, sizeof(line), fp) != NULL) {
@@ -143,18 +156,49 @@ void harden_sshd() {
         } else if (strncmp(line, "X11Forwarding", 13) == 0) {
             fprintf(fp, "%s\n", x11_forwarding);
             changed = 1;
+        } else if (strncmp(line, "ClientAliveInterval", 19) == 0) {
+            fprintf(fp, "ClientAliveInterval 300\n");
+            changed = 1;
+        } else if (strncmp(line, "ClientAliveCountMax", 19) == 0) {
+            fprintf(fp, "ClientAliveCountMax 0\n");
+            changed = 1;
+        } else if (strncmp(line, "PermitRootLogin", 15) == 0) {
+            fprintf(fp, "PermitRootLogin no\n");
+            changed = 1;
+        } else if (strncmp(line, "MaxAuthTries", 12) == 0) {
+            fprintf(fp, "MaxAuthTries 4\n");
+            changed = 1;
+        } else if (strncmp(line, "MaxSessions", 11) == 0) {
+            fprintf(fp, "MaxSessions 4\n");
+            changed = 1;
+        } else if (strncmp(line, "IgnoreRhosts", 12) == 0) {
+            fprintf(fp, "IgnoreRhosts yes\n");
+            changed = 1;
+        } else if (strncmp(line, "HostbasedAuthentication", 23) == 0) {
+            fprintf(fp, "HostbasedAuthentication no\n");
+            changed = 1;
+        } else if (strncmp(line, "PermitEmptyPasswords", 20) == 0) {
+            fprintf(fp, "PermitEmptyPasswords no\n");
+            changed = 1;
+        } else if (strncmp(line, "ChallengeResponseAuthentication", 31) == 0) {
+            fprintf(fp, "ChallengeResponseAuthentication no\n");
+            changed = 1;
+        } else if (strncmp(line, "AllowAgentForwarding", 20) == 0) {
+            fprintf(fp, "AllowAgentForwarding no\n");
+            changed = 1;
+        } else if (strncmp(line, "AllowTcpForwarding", 18) == 0) {
+            fprintf(fp, "AllowTcpForwarding no\n");
+            changed = 1;
+        } else if (strncmp(line, "PrintLastLog", 12) == 0) {
+            fprintf(fp, "PrintLastLog yes\n");
+            changed = 1;
+        } else if (strncmp(line, "UsePAM", 6) == 0) {
+            fprintf(fp, "UsePAM yes\n");
+            changed = 1;
         } else {
             fputs(line, fp);
         }
     }
-
-    if (!changed) {
-        fprintf(fp, "LogLevel %s\n", log_level);
-        fprintf(fp, "%s\n", x11_forwarding);
-    }
-
-    fclose(fp);
-
 }
 
 // void secure_grub() {
@@ -1100,3 +1144,92 @@ void secure_database_services() {
     
 }
 
+void disable_regular_user_shells() {
+    // Define the shell to use for non-root users
+    char *shell = "/bin/rbash";
+
+    // Loop through all users with user IDs greater than or equal to 1000
+    // (assuming that user IDs below 1000 are reserved for system users)
+    for (uid_t uid = 1000; uid <= 65535; uid++) {
+        // Get the username for this user ID
+        struct passwd *pw = getpwuid(uid);
+        if (pw == NULL) {
+            // User not found, skip to next user
+            continue;
+        }
+
+        // If this is the root user, skip to next user
+        if (strcmp(pw->pw_name, "root") == 0) {
+            continue;
+        }
+
+        // Change the user's shell to rbash
+        char *args[] = {"chsh", "-s", shell, pw->pw_name, NULL};
+        if (execvp(args[0], args) < 0) {
+            perror("execvp failed");
+        }
+    }
+}
+
+
+int restart_service(char* service_name) {
+    pid_t pid = find_pid_by_name(service_name);
+    printf("%s PID is %d\n", service_name, pid);
+    int ret = kill(pid, SIGHUP);
+    if(ret == -1)
+    {
+        printf("kill failed!\n");
+        return -1;
+    }
+    return 0;
+}
+
+pid_t find_pid_by_name(const char *pname) {
+    DIR *dir;
+    struct dirent *ent;
+    char *endptr;
+    char buf[512];
+    FILE *fp;
+    pid_t pid = -1;
+
+    if (!(dir = opendir(PROC_PATH)))
+        return -1;
+
+    while ((ent = readdir(dir)) != NULL) {
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+            continue;
+
+        endptr = NULL;
+        long lpid = strtol(ent->d_name, &endptr, 10);
+        if (*endptr != '\0')
+            continue;
+
+        snprintf(buf, sizeof(buf), PROC_PATH "%ld/cmdline", lpid);
+        if (!(fp = fopen(buf, "r")))
+            continue;
+
+        if (fgets(buf, sizeof(buf), fp) == NULL) {
+            fclose(fp);
+            continue;
+        }
+
+        fclose(fp);
+
+        char *cmd_start = buf;
+        char *cmd_end = strstr(cmd_start, "\0");
+        if (cmd_end == NULL)
+            continue;
+
+        cmd_end++;
+        while (*cmd_end == '\0')
+            cmd_end++;
+
+        if (strstr(cmd_start, pname) != NULL) {
+            pid = (pid_t) lpid;
+            break;
+        }
+    }
+
+    closedir(dir);
+    return pid;
+}
