@@ -85,10 +85,10 @@ void enable_aslr() {
     }
 }
 
+
 void harden_sshd() {
     char line[2048];
     FILE *sshd_config_file;
-    FILE *temp_file;
     int line_num = 0;
     int protocol_num = 0;
     int permit_root_login_num = 0;
@@ -96,14 +96,8 @@ void harden_sshd() {
     int pubkey_authentication_num = 0;
 
     // Open SSH configuration file
-    if ((sshd_config_file = fopen("/etc/ssh/sshd_config", "r")) == NULL) {
+    if ((sshd_config_file = fopen("/etc/ssh/sshd_config", "r+")) == NULL) {
         perror("Could not open sshd_config file");
-        exit(1);
-    }
-
-    // Create temporary file to store modified SSH configuration
-    if ((temp_file = tmpfile()) == NULL) {
-        perror("Could not create temporary file");
         exit(1);
     }
 
@@ -114,62 +108,49 @@ void harden_sshd() {
         // Disable SSHv1 protocol
         if (strstr(line, "Protocol") != NULL) {
             if (strstr(line, "1") != NULL) {
-                fprintf(temp_file, "Protocol 2\n");
+                fseek(sshd_config_file, -strlen(line), SEEK_CUR);
+                fprintf(sshd_config_file, "Protocol 2\n");
                 protocol_num++;
-            } else {
-                fprintf(temp_file, "%s", line);
             }
         }
 
         // Disable root login
         else if (strstr(line, "PermitRootLogin") != NULL) {
             if (strstr(line, "yes") != NULL) {
-                fprintf(temp_file, "PermitRootLogin no\n");
+                fseek(sshd_config_file, -strlen(line), SEEK_CUR);
+                fprintf(sshd_config_file, "PermitRootLogin no\n");
                 permit_root_login_num++;
-            } else {
-                fprintf(temp_file, "%s", line);
             }
         }
 
         // Disable password authentication
         else if (strstr(line, "PasswordAuthentication") != NULL) {
             if (strstr(line, "yes") != NULL) {
-                fprintf(temp_file, "PasswordAuthentication no\n");
+                fseek(sshd_config_file, -strlen(line), SEEK_CUR);
+                fprintf(sshd_config_file, "PasswordAuthentication no\n");
                 password_authentication_num++;
-            } else {
-                fprintf(temp_file, "%s", line);
             }
         }
 
         // Enable public key authentication
         else if (strstr(line, "PubkeyAuthentication") != NULL) {
             if (strstr(line, "no") != NULL) {
-                fprintf(temp_file, "PubkeyAuthentication yes\n");
+                fseek(sshd_config_file, -strlen(line), SEEK_CUR);
+                fprintf(sshd_config_file, "PubkeyAuthentication yes\n");
                 pubkey_authentication_num++;
-            } else {
-                fprintf(temp_file, "%s", line);
             }
         }
-
-        // Copy all other lines as is
-        else {
-            fprintf(temp_file, "%s", line);
-        }
     }
 
-    // Close SSH configuration and temporary files
+    // Close SSH configuration file
     fclose(sshd_config_file);
-    fclose(temp_file);
 
-    // Move temporary file to SSH configuration file
-    if (rename("/etc/ssh/sshd_config", "/etc/ssh/sshd_config.bak") != 0) {
-        perror("Could not create backup of sshd_config file");
-        exit(1);
-    }
-    if (rename("/tmp/temp_sshd_config", "/etc/ssh/sshd_config") != 0) {
-        perror("Could not write new sshd_config file");
-        exit(1);
-    }
+    // Print summary of changes made
+    printf("SSH configuration hardened:\n");
+    printf("  Protocol 1 disabled: %s\n", protocol_num ? "yes" : "no");
+    printf("  PermitRootLogin disabled: %s\n", permit_root_login_num ? "yes" : "no");
+    printf("  PasswordAuthentication disabled: %s\n", password_authentication_num ? "yes" : "no");
+    printf("  PubkeyAuthentication enabled: %s\n", pubkey_authentication_num ? "yes" : "no");
 }
 // void secure_grub() {
 //     char cmd[100] = {0};
