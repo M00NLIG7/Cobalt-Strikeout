@@ -24,20 +24,20 @@ int main () {
     printf("[+] Disable Loading of USB Storage\n");
     disable_loading_USB_Storage();
 
-    printf("[+] Disable Freevxfs Mounting\n");
-    disable_freevxfs_mounting();
+    // printf("[+] Disable Freevxfs Mounting\n");
+    // disable_freevxfs_mounting();
 
-    printf("[+] Disable JFFS Mounting\n");
-    disable_jffs_mounting();
+    // printf("[+] Disable JFFS Mounting\n");
+    // disable_jffs_mounting();
 
-    printf("[+] Disable HFS Mounting\n");
-    disable_hfs_mounting();
+    // printf("[+] Disable HFS Mounting\n");
+    // disable_hfs_mounting();
 
-    printf("[+] Disable HFSPlus Mounting\n");
-    disable_hfsplus_mounting();
+    // printf("[+] Disable HFSPlus Mounting\n");
+    // disable_hfsplus_mounting();
 
-    printf("[+] Disable UDF Mounting\n");
-    disable_udf_mounting();
+    // printf("[+] Disable UDF Mounting\n");
+    // disable_udf_mounting();
 
     printf("[+] Disable Auto Mounting\n");
     disable_auto_mounting();
@@ -103,6 +103,6 @@ int main () {
     reverse_linpeas();
 
     // printf("[+] Removing netrc files\n");
-    remove_netrc_files();
+    // remove_netrc_files();
 
 }
