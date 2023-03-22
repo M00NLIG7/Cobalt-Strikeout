@@ -128,43 +128,6 @@ void harden_sshd() {
 
     // Set the file permissions of /etc/ssh/sshd_config to 600 (rw-------)
     chmod("/etc/ssh/sshd_config", S_IRUSR | S_IWUSR);
-    
-    pid_t pid;
-    int status;
-
-    char *find_args1[] = { "find", "/etc/ssh", "-xdev", "-type", "f", "-name", "ssh_host_*_key.pub", "-exec", "chmod", "u-x,gowx", "{}", ";", NULL };
-    char *find_args2[] = { "find", "/etc/ssh", "-xdev", "-type", "f", "-name", "ssh_host_*_key.pub", "-exec", "chown", "root:root", "{}", ";", NULL };
-    char *find_args3[] = { "find", "/etc/ssh", "-xdev", "-type", "f", "-name", "ssh_host_*_key", "-exec", "chown", "root:root", "{}", ";", "find", "/etc/ssh", "-xdev", "-type", "f", "-name", "ssh_host_*_key", "-exec", "chmod", "u-x,go-rwx", "{}", ";", NULL };
-
-    pid = fork();
-
-    if (pid == 0) {
-        printf("Running command: %s %s %s %s %s %s %s %s %s %s %s %s\n", find_args1[0], find_args1[1], find_args1[2], find_args1[3], find_args1[4], find_args1[5], find_args1[6], find_args1[7], find_args1[8], find_args1[9], find_args1[10], find_args1[11]);
-        execvp(find_args1[0], find_args1);
-        perror("execvp");
-        _exit(1);
-    }
-
-    waitpid(pid, &status, 0);
-
-    pid = fork();
-
-    if (pid == 0) {
-        printf("Running command: %s %s %s %s %s %s %s %s %s %s %s %s\n", find_args2[0], find_args2[1], find_args2[2], find_args2[3], find_args2[4], find_args2[5], find_args2[6], find_args2[7], find_args2[8], find_args2[9], find_args2[10], find_args2[11]);
-        execvp(find_args2[0], find_args2);
-        perror("execvp");
-        _exit(1);
-    }
-
-    waitpid(pid, &status, 0);
-
-    pid = fork();
-
-    if (pid == 0) {
-        printf("Running command: %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n", find_args3[0], find_args3[1], find_args3[2], find_args3[3], find_args3[4], find_args3[5], find_args3[6], find_args3[7], find_args3[8], find_args3[9], find_args3[10], find_args3[11], find_args3[12], find_args3[13], find_args3[14], find_args3[15], find_args3[16], find_args3[17], find_args3[18], find_args3[19], find_args3[20], find_args3[21]);
-        execvp(find_args3[0], find_args3);
-        _exit(1);
-    }       
 
 
     restart_service("sshd");
