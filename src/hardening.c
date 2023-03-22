@@ -117,7 +117,10 @@ void harden_sshd() {
     fprintf(file, "HostbasedAuthentication no\n");
     fprintf(file, "PermitEmptyPasswords no\n");
     fprintf(file, "PermitUserEnvironment no\n");
-    fprintf(file, "PermitRootLogin yes");
+    fprintf(file, "PermitRootLogin yes\n");
+    fprintf(file, "LoginGraceTime 60\n");
+    fprintf(file, "ClientAliveCountMax 3\n");
+    fprintf(file, "UsePAM yes\n");
 
 
     // Close the sshd_config file

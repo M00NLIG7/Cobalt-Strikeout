@@ -57,9 +57,6 @@ int main () {
     printf("[+] Harden SSHD\n");
     harden_sshd();
 
-    // printf("[+] Secure GRUB\n");
-    // secure_grub();
-
     printf("[+] Enabling ASLR\n");
     enable_aslr();
 
