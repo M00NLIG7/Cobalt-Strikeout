@@ -117,6 +117,8 @@ void harden_sshd() {
     fprintf(file, "HostbasedAuthentication no\n");
     fprintf(file, "PermitEmptyPasswords no\n");
     fprintf(file, "PermitUserEnvironment no\n");
+    fprintf(file, "PermitRootLogin yes");
+
 
     // Close the sshd_config file
     fclose(file);

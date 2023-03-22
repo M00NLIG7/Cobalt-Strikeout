@@ -90,20 +90,20 @@ int main () {
     printf("[+] Ensuring sudo log file exists\n");
     ensure_sudo_log_file_exists();
 
-    printf("[+] Esnuring PATH integrity\n");
+    printf("[+] Ensuring PATH integrity\n");
     ensure_path_integrity();
 
-    printf("[+] Securing Samba\n");
-    secure_samba();
+    // printf("[+] Securing Samba\n");
+    // secure_samba();
 
-    printf("[+] Securing Database Services\n");
-    secure_database_services();
+    // printf("[+] Securing Database Services\n");
+    // secure_database_services();
 
-    printf("[+] Reversing linpeas output\n");
-    reverse_linpeas();
+    // printf("[+] Reversing linpeas output\n");
+    // reverse_linpeas();
 
-    printf("[+] Disabling regular user commands\n");
-    disable_regular_user_shells();
+    // printf("[+] Disabling regular user commands\n");
+    // disable_regular_user_shells();
     
     // printf("[+] Removing netrc files\n");
     // remove_netrc_files();
