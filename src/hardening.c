@@ -1002,52 +1002,6 @@ void remove_netrc_files() {
     endpwent();
 }
 
-void ensure_path_integrity() {
-    char *path_env_var;
-    char *new_path_env_var;
-
-    path_env_var = getenv("PATH");
-
-    if (path_env_var == NULL) {
-      printf("Error: PATH environment variable not set\n");
-    }
-
-    size_t path_len = strlen(path_env_var);
-    if (path_len > MAX_PATH_LEN) {
-      printf("Error: PATH environment variable is too long\n");
-    }
-
-    new_path_env_var = (char*)malloc(path_len + 1);
-    if (new_path_env_var == NULL) {
-      printf("Error: failed to allocate memory\n");
-    }
-
-    char *p = strtok(path_env_var, ":");
-    int found_root_path = 0;
-
-    while (p != NULL) {
-      if (strcmp(p, "/usr/local/sbin") == 0) {
-        found_root_path = 1;
-      }
-      strcat(new_path_env_var, p);
-      strcat(new_path_env_var, ":");
-      p = strtok(NULL, ":");
-    }
-
-    if (!found_root_path) {
-      strcat(new_path_env_var, "/usr/local/sbin");
-      strcat(new_path_env_var, ":");
-    }
-
-    if (setenv("PATH", new_path_env_var, 1) != 0) {
-      printf("Error: failed to set PATH environment variable: %s\n", strerror(errno));
-    }
-
-    printf("Successfully set PATH environment variable to: %s\n", new_path_env_var);
-
-    free(new_path_env_var);
-}   
-
 void secure_samba() {
 
 }

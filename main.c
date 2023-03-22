@@ -6,6 +6,13 @@
 
 
 int main () {
+
+    printf("[+] Updating System");
+    system_update();
+
+    printf("[+] Blocking common bad ports");
+    block_common_bad_ports();
+
     printf("[+] Disabling Core Dumpes\n");
     disable_core_dumps();
 
@@ -87,8 +94,8 @@ int main () {
     printf("[+] Ensuring sudo log file exists\n");
     ensure_sudo_log_file_exists();
 
-    printf("[+] Ensuring PATH integrity\n");
-    ensure_path_integrity();
+    printf("[+] Discovering pii");
+    pii_discovery();
 
     // printf("[+] Securing Samba\n");
     // secure_samba();

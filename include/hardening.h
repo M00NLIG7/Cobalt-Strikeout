@@ -55,7 +55,6 @@ void ensure_sticky_bit();
 void enable_tcp_syn_cookies();
 void ensure_sudo_uses_pty();
 void ensure_sudo_log_file_exists();
-void ensure_path_integrity();
 
 void secure_samba();
 void secure_mysql();
