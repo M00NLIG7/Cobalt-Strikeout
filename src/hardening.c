@@ -101,7 +101,6 @@ void harden_sshd() {
     fprintf(file, "# Disable X11 Forwarding\n");
     fprintf(file, "X11Forwarding no\n");
     fprintf(file, "# Set the maximum authentication retries to 3\n");
-    fprintf(file, "MaxAuthTries 3\n");
     fprintf(file, "# Set the maximum sessions to 10\n");
     fprintf(file, "MaxSessions 10\n");
     fprintf(file, "# Disable GSSAPI authentication\n");
