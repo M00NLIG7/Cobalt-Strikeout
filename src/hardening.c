@@ -116,9 +116,9 @@ void harden_sshd() {
     fprintf(file, "IgnoreRhosts yes\n"); 
     fprintf(file, "HostbasedAuthentication no\n");
     fprintf(file, "PermitEmptyPasswords no\n");
-    fprintf(file, "PermitUserEnvironment no\n");
     fprintf(file, "PermitRootLogin yes\n");
     fprintf(file, "LoginGraceTime 60\n");
+    fprtinf(file, "Subsystem sftp internal-sftpz\n");
     fprintf(file, "UsePAM yes\n");
 
 
