@@ -1,11 +1,11 @@
-#include "audit.h"
-#include "discovery.h"
-#include "hardening.h"
-#include "network.h"
-#include "system.h"
+// #include "audit.h"
+// #include "discovery.h"
+// #include "hardening.h"
+// #include "network.h"
+// #include "system.h"
 
 
-int main () {
+int main (char ** args) {
 
     printf("[+] Updating System");
     system_update();
@@ -94,7 +94,7 @@ int main () {
     printf("[+] Ensuring sudo log file exists\n");
     ensure_sudo_log_file_exists();
 
-    printf("[+] Discovering pii");
+    printf("[+] Discovering pii\n");
     pii_discovery();
 
     // printf("[+] Securing Samba\n");
@@ -111,5 +111,19 @@ int main () {
     
     // printf("[+] Removing netrc files\n");
     // remove_netrc_files();
-
 }
+
+
+// int main(int argc, char** argv)
+// {
+//     for(int i = 1; i < argc; i++) {
+//         if(strcmp(argv[i], "--all") == 0 || strcmp(argv[i], "-a") == 0) {
+//             // install_flag = 1;
+//         }                                                                                                                                                                                   
+//         if(strcmp(argv[i], "-a") == 0) {
+//             // a_flag = 1;
+//         }
+//     }
+ 
+//     return 0;
+// }

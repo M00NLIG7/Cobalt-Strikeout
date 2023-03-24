@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I./include -std=gnu99
+CFLAGS=-I./include -std=gnu99 -static /usr/lib64/libc.a
 OBJ=main.o src/audit.o src/discovery.o src/hardening.o src/network.o src/system.o
 
 all: main

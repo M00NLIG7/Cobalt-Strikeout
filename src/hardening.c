@@ -628,44 +628,38 @@ Rationale - This feature prevents the ability to delete or rename files in world
 */
 void ensure_sticky_bit() {
     FILE *fp;
-    char command[] = "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type d \\( -perm -0002 -a ! -perm -1000 \\) 2>/dev/null | xargs -I '{}' chmod a+t '{}'";
     char path[1024];
-    char buf[1024];
     char *dirpath;
     DIR *dirp;
     struct dirent *direntp;
     struct stat st;
     int status;
 
-    fp = popen(command, "r");
-    if (fp == NULL) {
-        perror("Error executing command");
+    dirp = opendir("/");
+
+    if (dirp == NULL) {
+        perror("Error opening root directory");
+        return;
     }
 
-    while (fgets(path, sizeof(path), fp) != NULL) {
-        path[strcspn(path, "\n")] = 0; // Remove newline character
-        if ((dirp = opendir(path)) == NULL) {
-            perror("Error opening directory");
+    while ((direntp = readdir(dirp)) != NULL) {
+        if (strcmp(direntp->d_name, ".") == 0 || strcmp(direntp->d_name, "..") == 0) {
             continue;
         }
-        while ((direntp = readdir(dirp)) != NULL) {
-            sprintf(buf, "%s/%s", path, direntp->d_name);
-            if (lstat(buf, &st) < 0) {
-                perror("Error getting file status");
-                continue;
-            }
-            if (S_ISDIR(st.st_mode) && (st.st_mode & S_IWOTH) && !(st.st_mode & S_ISVTX)) {
-                printf("Changing permissions for directory: %s\n", buf);
-                status = chmod(buf, st.st_mode | S_ISVTX);
-                if (status < 0) {
-                    perror("Error changing permissions");
-                }
+        sprintf(path, "/%s", direntp->d_name);
+        if (lstat(path, &st) < 0) {
+            perror("Error getting file status");
+            continue;
+        }
+        if (S_ISDIR(st.st_mode) && (st.st_mode & S_IWOTH) && !(st.st_mode & S_ISVTX)) {
+            printf("Changing permissions for directory: %s\n", path);
+            status = chmod(path, st.st_mode | S_ISVTX);
+            if (status < 0) {
+                perror("Error changing permissions");
             }
         }
-        closedir(dirp);
     }
-
-    pclose(fp);
+    closedir(dirp);
 }
 
 /*
