@@ -1,16 +1,5 @@
 #include "network.h"
 
-void block_common_bad_ports() {
-    // List of common bad ports to block.
-    int bad_ports[] = { 23, 135, 137, 138, 139, 445, 10000 };
-    // Bind each bad port to the loopback address.
-    for (size_t i = 0; i < sizeof(bad_ports) / sizeof(bad_ports[0]); i++) {
-        if (block_port(bad_ports[i]) == -1) {
-            fprintf(stderr, "Failed to bind port %d to loopback address.\n", bad_ports[i]);
-        }
-    }
-}
-
 int block_port(int port) 
 {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);

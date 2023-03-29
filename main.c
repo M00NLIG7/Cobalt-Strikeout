@@ -1,129 +1,171 @@
-// #include "audit.h"
-// #include "discovery.h"
-// #include "hardening.h"
-// #include "network.h"
-// #include "system.h"
+#include "audit.h"
+#include "discovery.h"
+#include "hardening.h"
+#include "network.h"
+#include "system.h"
+#include <string.h>
+#include <stdio.h>
+#include <string.h>
 
+int main(int argc, char *argv[]) {
+    if (argc == 1) {
+        printf("[+] Updating System");
+        system_update();
 
-int main (char ** args) {
+        printf("[+] Disabling Core Dumps\n");
+        disable_core_dumps();
 
-    printf("[+] Updating System");
-    system_update();
+        printf("[+] Disabling IPv6\n");
+        disable_ipv6();
 
-    printf("[+] Blocking common bad ports");
-    block_common_bad_ports();
+        printf("[-] Disabling SUID Binaries\n");
+        disable_setuid_binaries();
 
-    printf("[+] Disabling Core Dumpes\n");
-    disable_core_dumps();
+        printf("[-] Disabling Ptrace\n");
+        disable_ptrace();
 
-    printf("[+] Disabling IPv6\n");
-    disable_ipv6();
+        printf("[-] Disabling Loading of Kernel Modules\n");
+        disable_loading_kernel_modules();
 
-    printf("[+] Disable SUID Binaries\n");
-    disable_setuid_binaries();
+        printf("[-] Disabling Loading of USB Storage\n");
+        disable_loading_USB_Storage();
 
-    printf("[+] Disable Ptrace\n");
-    disable_ptrace();
+        // printf("[-] Disabling Freevxfs Mounting\n");
+        // disable_freevxfs_mounting();
 
-    printf("[+] Disable Loading of Kernel Modules\n");
-    disable_loading_kernel_modules();
+        // printf("[-] Disabling JFFS Mounting\n");
+        // disable_jffs_mounting();
 
-    printf("[+] Disable Loading of USB Storage\n");
-    disable_loading_USB_Storage();
+        // printf("[-] Disabling HFS Mounting\n");
+        // disable_hfs_mounting();
 
-    // printf("[+] Disable Freevxfs Mounting\n");
-    // disable_freevxfs_mounting();
+        // printf("[-] Disabling HFSPlus Mounting\n");
+        // disable_hfsplus_mounting();
 
-    // printf("[+] Disable JFFS Mounting\n");
-    // disable_jffs_mounting();
+        // printf("[-] Disabling UDF Mounting\n");
+        // disable_udf_mounting();
 
-    // printf("[+] Disable HFS Mounting\n");
-    // disable_hfs_mounting();
+        printf("[-] Disabling Auto Mounting\n");
+        disable_auto_mounting();
 
-    // printf("[+] Disable HFSPlus Mounting\n");
-    // disable_hfsplus_mounting();
+        printf("[-] Disabling Packet Redirect Sending\n");
+        disable_packet_redirect_sending();
 
-    // printf("[+] Disable UDF Mounting\n");
-    // disable_udf_mounting();
+        printf("[-] Disabling IP Forwarding\n");
+        disable_ip_forwarding();
 
-    printf("[+] Disable Auto Mounting\n");
-    disable_auto_mounting();
+        printf("[-] Disabling Source Routing\n");
+        disable_source_routing();
 
-    printf("[+] Disable Packet Redirect Sending\n");
-    disable_packet_redirect_sending();
+        printf("[-] Disabling ICMP Redirects\n");
+        disable_icmp_redirects();
 
-    printf("[+] Disable IP Forwarding\n");
-    disable_ip_forwarding();
+        printf("[+] Hardening SSHD\n");
+        harden_sshd();
 
-    printf("[+] Disable Source Routing\n");
-    disable_source_routing();
+        printf("[+] Enabling ASLR\n");
+        enable_aslr();
 
-    printf("[+] Disable ICMP Redirects\n");
-    disable_icmp_redirects();
+        printf("[+] Ensuring TMP is Configured\n");
+        ensure_tmp_is_configured();
 
-    printf("[+] Harden SSHD\n");
-    harden_sshd();
+        printf("[+] Ensuring Nodev on Temp\n");
+        ensure_nodev_on_temp();
 
-    printf("[+] Enabling ASLR\n");
-    enable_aslr();
+        printf("[+] Ensuring Nosuid on TMP\n");
+        ensure_nosuid_on_tmp();
 
-    printf("[+] Ensuring TMP is Configured\n");
-    ensure_tmp_is_configured();
+        printf("[+] Ensuring SHM\n");
+        ensure_shm();
 
-    printf("[+] Ensuring Nodev on Temp\n");
-    ensure_nodev_on_temp();
+        printf("[+] Ensuring Nosuid on SHM\n");
+        ensure_nosuid_on_shm();
 
-    printf("[+] Ensuring Nosuid on TMP\n");
-    ensure_nosuid_on_tmp();
+        printf("[+] Ensuring Sticky Bit\n");
+        ensure_sticky_bit();
 
-    printf("[+] Ensuring SHM\n");
-    ensure_shm();
+        printf("[+] Enabling TCP SYN Cookies\n");
+        enable_tcp_syn_cookies();
 
-    printf("[+] Ensuring Nosuid on SHM\n");
-    ensure_nosuid_on_shm();
+        printf("[+] Ensuring Sudo Uses PTY\n");
+        ensure_sudo_uses_pty();
 
-    printf("[+] Ensuring Sticky Bit\n");
-    ensure_sticky_bit();
+        printf("[+] Ensuring sudo log file exists\n");
+        ensure_sudo_log_file_exists();
 
-    printf("[+] Enabling TCP SYN Cookies\n");
-    enable_tcp_syn_cookies();
+        printf("[+] Discovering pii\n");
+        pii_discovery();
 
-    printf("[+] Ensuring Sudo Uses PTY\n");
-    ensure_sudo_uses_pty();
+        // printf("[+] Securing Samba\n");
+        // secure_samba();
 
-    printf("[+] Ensuring sudo log file exists\n");
-    ensure_sudo_log_file_exists();
+        // printf("[+] Securing Database Services\n");
+        // secure_database_services();
 
-    printf("[+] Discovering pii\n");
-    pii_discovery();
+        // printf("[+] Reversing linpeas output\n");
+        // reverse_linpeas();
 
-    // printf("[+] Securing Samba\n");
-    // secure_samba();
+        // printf("[+] Disabling regular user commands\n");
+        // disable_regular_user_shells();
+        
+        // printf("[+] Removing netrc files\n");
+        // remove_netrc_files();
 
-    // printf("[+] Securing Database Services\n");
-    // secure_database_services();
+        printf("[+] Auditing File Permissions");
+        audit_file_permssions();
 
-    // printf("[+] Reversing linpeas output\n");
-    // reverse_linpeas();
+        printf("[+] Auditing Password Policy");
+        audit_password_policy();
 
-    // printf("[+] Disabling regular user commands\n");
-    // disable_regular_user_shells();
-    
-    // printf("[+] Removing netrc files\n");
-    // remove_netrc_files();
+        printf("[+] Auditing Users and Groups");
+        audit_user_and_groups();
+        
+        
+        return 0;
+    }
+
+    if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+        printf("Usage: %s [--block/-b/--clear/-c/--help/-h] [ip/port] [value]\n", argv[0]);
+        printf("Options:\n");
+        printf("  --block/-b  : block an IP address or port\n");
+        printf("  --clear/-c  : clear the firewall rules\n");
+        printf("  --help/-h   : print this help message\n");
+        printf("Arguments:\n");
+        printf("  ip          : the IP address to block (for --block ip)\n");
+        printf("  port        : the port to block (for --block port)\n");
+        return 0;
+    }
+
+    if (strcmp(argv[1], "--clear") == 0 || strcmp(argv[1], "-c") == 0) {
+        printf("Clearing firewall\n");
+        return 0;
+    }
+
+    char *option = NULL;
+    char *type = NULL;
+    char *value = NULL;
+
+    if ((strcmp(argv[1], "--block") == 0 || strcmp(argv[1], "-b") == 0) && argc == 4) {
+        option = argv[1];
+        type = argv[2];
+        value = argv[3];
+    } else {
+        printf("Invalid format. Use '%s --help' for usage.\n", argv[0]);
+        return 1;
+    }
+
+    if (strcmp(type, "ip") == 0) {
+        printf("Blocking IP address %s\n", value);
+        block_ip(value);
+    } else if (strcmp(type, "port") == 0) {
+        printf("Blocking port %s\n", value);
+        block_port(value);
+    } else {
+        printf("Invalid option '%s'. Must be 'ip' or 'port'\n", type);
+        return 1;
+    }
+
+    return 0;
 }
 
 
-// int main(int argc, char** argv)
-// {
-//     for(int i = 1; i < argc; i++) {
-//         if(strcmp(argv[i], "--all") == 0 || strcmp(argv[i], "-a") == 0) {
-//             // install_flag = 1;
-//         }                                                                                                                                                                                   
-//         if(strcmp(argv[i], "-a") == 0) {
-//             // a_flag = 1;
-//         }
-//     }
- 
-//     return 0;
-// }

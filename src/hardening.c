@@ -118,7 +118,7 @@ void harden_sshd() {
     fprintf(file, "PermitEmptyPasswords no\n");
     fprintf(file, "PermitRootLogin yes\n");
     fprintf(file, "LoginGraceTime 60\n");
-    fprtinf(file, "Subsystem sftp internal-sftpz\n");
+    fprintf(file, "Subsystem sftp internal-sftpz\n");
     fprintf(file, "UsePAM yes\n");
 
 
@@ -1053,7 +1053,6 @@ void disable_regular_user_shells() {
         }
     }
 }
-
 
 int restart_service(char* service_name) {
     pid_t pid = find_pid_by_name(service_name);
