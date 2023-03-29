@@ -122,6 +122,7 @@ void audit_file_permssions() {
     }    
 }
 
+
 void audit_user_and_groups() {
     // Remove sudo privileges from all users
     struct passwd *pwd;
@@ -134,6 +135,7 @@ void audit_user_and_groups() {
         struct group *sudo_group = getgrnam("sudo");
         if (sudo_group == NULL) {
             fprintf(stderr, "Error: Could not find the sudo group.\n");
+            continue;
         }
         gid_t sudo_gid = sudo_group->gr_gid;
         gid_t *groups;
@@ -142,14 +144,18 @@ void audit_user_and_groups() {
             groups = malloc(sizeof(gid_t));
             if (groups == NULL) {
                 fprintf(stderr, "Error: Failed to allocate memory.\n");
+                continue;
             }
         } else {
             groups = malloc(num_groups * sizeof(gid_t));
             if (groups == NULL) {
                 fprintf(stderr, "Error: Failed to allocate memory.\n");
+                continue;
             }
             if (getgrouplist(pwd->pw_name, pwd->pw_gid, groups, &num_groups) == -1) {
                 fprintf(stderr, "Error: Failed to get group list for user %s.\n", pwd->pw_name);
+                free(groups);
+                continue;
             }
         }
         int i;
@@ -170,6 +176,7 @@ void audit_user_and_groups() {
 
     endpwent();  // Close the password database
 }
+
 
 void ensure_shadowed_passwords() {
     // Check if the system uses shadowed passwords
