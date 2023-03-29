@@ -111,13 +111,13 @@ int main(int argc, char *argv[]) {
         // printf("[+] Removing netrc files\n");
         // remove_netrc_files();
 
-        printf("[+] Auditing File Permissions");
+        printf("[+] Auditing File Permissions\n");
         audit_file_permssions();
 
-        printf("[+] Auditing Password Policy");
+        printf("[+] Auditing Password Policy\n");
         audit_password_policy();
 
-        printf("[+] Auditing Users and Groups");
+        printf("[+] Auditing Users and Groups\n");
         audit_user_and_groups();
         
         

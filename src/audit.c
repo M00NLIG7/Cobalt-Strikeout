@@ -1,12 +1,17 @@
 #include "audit.h"
 
+#define MAX_LINE_LEN 256
 
 void audit_password_policy() {
-    FILE *fp;
-    fp = fopen("/etc/pam.d/common-password", "r+"); // open the PAM configuration file in read/write mode
-
+    // check if the password policy configuration file exists
+    FILE *fp = fopen("/etc/pam.d/common-password", "r+");
     if (fp == NULL) {
-        printf("Error opening file\n");
+        // file doesn't exist, create it
+        fp = fopen("/etc/pam.d/common-password", "w");
+        if (fp == NULL) {
+            printf("Error creating file\n");
+            return;
+        }
     }
 
     // check if the password policy configuration line already exists in the file
@@ -15,7 +20,7 @@ void audit_password_policy() {
         if (strstr(line, "pam_pwquality.so") != NULL) {
             printf("Password policy configuration already exists in file\n");
             fclose(fp);
-            return 0;
+            return;
         }
     }
 
@@ -24,20 +29,19 @@ void audit_password_policy() {
 
     fclose(fp);
 
-    fp = fopen("/etc/security/pwquality.conf", "w"); // open the pwquality configuration file in write mode
-
+    // write the password policy options to the configuration file
+    fp = fopen("/etc/security/pwquality.conf", "w");
     if (fp == NULL) {
         printf("Error opening file\n");
+        return;
     }
 
-    // write the password policy options to the file
     fprintf(fp, "minlen = 12\n"); // minimum password length
     fprintf(fp, "dcredit = -1\n"); // at least one digit required
     fprintf(fp, "ucredit = -1\n"); // at least one uppercase letter required
     fprintf(fp, "ocredit = -1\n"); // at least one special character required
 
     fclose(fp);
-
 }
 
 void audit_file_permssions() {
